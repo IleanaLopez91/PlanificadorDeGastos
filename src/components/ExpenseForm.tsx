@@ -17,7 +17,9 @@ const ExpenseForm = () => {
 
   const [error, setError] = useState("");
 
-  const { dispatch, state } = useBudget();
+  const [previousAmount, setPreviousAmount] = useState(0);
+
+  const { dispatch, state, reminingBudget } = useBudget();
 
   useEffect(() => {
     if (state.editingId) {
@@ -25,6 +27,7 @@ const ExpenseForm = () => {
         (currentExpense) => currentExpense.id === state.editingId
       )[0];
       setExpense(editingExpense);
+      setPreviousAmount(editingExpense.amount);
     }
   }, [state.editingId]);
 
@@ -52,6 +55,10 @@ const ExpenseForm = () => {
       setError("Todos los campos son obligatorios");
       return;
     }
+    if (expense.amount - previousAmount > reminingBudget) {
+      setError("El gasto se sale del presupuesto");
+      return;
+    }
     if (state.editingId) {
       dispatch({
         type: "update-expense",
@@ -72,6 +79,7 @@ const ExpenseForm = () => {
       category: "",
       date: new Date(),
     });
+    setPreviousAmount(0);
   };
   return (
     <form className="space-y-5" onSubmit={handleSubmit}>
@@ -133,7 +141,11 @@ const ExpenseForm = () => {
         <label htmlFor="amount" className=" text-xl">
           Fecha Gastos:{" "}
         </label>
-        <DatePicker value={expense.date} onChange={handleChangeDate} />
+        <DatePicker
+          className=" bg-slate-100 p-2 border-0"
+          value={expense.date}
+          onChange={handleChangeDate}
+        />
       </div>
 
       <input
